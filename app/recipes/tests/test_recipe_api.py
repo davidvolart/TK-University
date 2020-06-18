@@ -119,8 +119,16 @@ class PublicRecipeApiTest(TestCase):
     def test_partial_update_recipe(self):
         """Test partial update for a recipe"""
 
-        recipe = Recipe.objects.create(name='Recipe to be updated', description='description recipe')
-        ingredient = Ingredient.objects.create(name='Ingredient1', recipe=recipe)
+        recipe_data = {
+            'name': 'Recipe to be updated',
+            'description': 'description recipe'
+        }
+
+        ingredients_data = {
+            'name': 'Ingredient1'
+        }
+
+        recipe = Recipe.objects.create_recipe(recipe=recipe_data, ingredients=[ingredients_data])
 
         patch_url = get_recipe_detail_url(recipe.id)
 
@@ -135,4 +143,5 @@ class PublicRecipeApiTest(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data['name'], recipe.name)
         self.assertEqual(res.data['description'], recipe.description)
-        self.assertFalse(Ingredient.objects.filter(name=ingredient.name).exists())
+        self.assertTrue(Ingredient.objects.filter(name=ingredients_data['name']).exists())
+        self.assertEqual(res.data['ingredients'], [ingredients_data])
