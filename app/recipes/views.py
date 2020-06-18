@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework import viewsets
-from recipes.models import Recipe, Ingredient
+from .models import Recipe, Ingredient
 from recipes import serializers
 
 
@@ -10,11 +10,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.RecipeSerializer
 
     def get_queryset(self):
-        ingredient_name = self.request.query_params.get('name')
+        recipe_name = self.request.query_params.get('name')
         queryset = self.queryset
 
-        if ingredient_name:
-            queryset = queryset.filter(name=ingredient_name)
+        if recipe_name:
+            queryset = queryset.filter(name__istartswith=recipe_name)
 
         return queryset
 

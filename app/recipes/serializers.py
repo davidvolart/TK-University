@@ -19,21 +19,12 @@ class RecipeSerializer(serializers.ModelSerializer):
         read_only_fields = ('id',)
 
     def create(self, validated_data):
-
-        recipe = models.Recipe(
-            name=validated_data.get('name'),
-            description=validated_data.get('description'),
-        )
-
-        recipe.save()
         ingredients = validated_data.get('ingredients')
-        for ingredient in ingredients:
-            models.Ingredient.objects.create(recipe=recipe, name=ingredient)
-
+        del validated_data['ingredients']
+        recipe = models.Recipe.objects.create_recipe(recipe=validated_data, ingredients=ingredients)
         return recipe
 
     def update(self, instance, validated_data):
-
         name = validated_data.pop('name', None)
         if name:
             instance.name = name
@@ -42,14 +33,11 @@ class RecipeSerializer(serializers.ModelSerializer):
         if description:
             instance.description = description
 
+        ingredients_update = validated_data.get('ingredients')
+        if ingredients_update:
+            instance.delete_ingredients()
+            instance.add_ingredients(ingredients_update)
+
         instance.save()
-
-        ingredients = models.Ingredient.objects.filter(recipe=instance)
-        ingredients.delete()
-
-        ingredients = validated_data.get('ingredients')
-        if ingredients:
-            for ingredient in ingredients:
-                models.Ingredient.objects.create(recipe=instance, **ingredient)
 
         return instance
